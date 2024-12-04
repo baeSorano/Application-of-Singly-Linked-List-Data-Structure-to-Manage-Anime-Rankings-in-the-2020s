@@ -1,0 +1,10 @@
+﻿  mẫu.cpp
+D:\Hoctap_nam2\đồ án\mẫu\mẫu.cpp(292,17): warning C4566: character represented by universal-character-name '\u1EC7' cannot be represented in the current code page (1252)
+D:\Hoctap_nam2\đồ án\mẫu\mẫu.cpp(295,17): warning C4566: character represented by universal-character-name '\u1EC7' cannot be represented in the current code page (1252)
+D:\Hoctap_nam2\đồ án\mẫu\mẫu.cpp(295,17): warning C4566: character represented by universal-character-name '\u0111' cannot be represented in the current code page (1252)
+D:\Hoctap_nam2\đồ án\mẫu\mẫu.cpp(295,17): warning C4566: character represented by universal-character-name '\u1EC3' cannot be represented in the current code page (1252)
+D:\Hoctap_nam2\đồ án\mẫu\mẫu.cpp(597,21): warning C4566: character represented by universal-character-name '\u1ED1' cannot be represented in the current code page (1252)
+D:\Hoctap_nam2\đồ án\mẫu\mẫu.cpp(597,21): warning C4566: character represented by universal-character-name '\u1EE9' cannot be represented in the current code page (1252)
+D:\Hoctap_nam2\đồ án\mẫu\mẫu.cpp(597,21): warning C4566: character represented by universal-character-name '\u1EF1' cannot be represented in the current code page (1252)
+D:\Hoctap_nam2\đồ án\mẫu\mẫu.cpp(600,21): warning C4566: character represented by universal-character-name '\u0110' cannot be represented in the current code page (1252)
+  mẫu.vcxproj -> D:\Hoctap_nam2\đồ án\mẫu\x64\Debug\mẫu.exe
