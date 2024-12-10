@@ -4,10 +4,10 @@
 #include <string>
 #include <iomanip>
 #include <chrono>
-
+using namespace std::chrono;
 using namespace std;
 
-using namespace chrono;
+
 struct ShowInfo {
     int id;              // STT
     string title;        // Ten phim
@@ -96,41 +96,41 @@ void freeList(Node*& head) {
     }
     head = nullptr;  // Đảm bảo danh sách trống
 }
-
-// Hàm hiển thị danh sách theo phân trang, cho phép người dùng chọn số trang và số lượng mục trên mỗi trang
+//Hàm hiển thị có phân trang
 void displayPaginated(Node* head, int itemsPerPage) {
-    int count = 0;
-    int page = 1;
+    // Đếm tổng số mục
     int totalItems = 0;
-
-    // Yêu cầu người dùng nhập số lượng mục trên mỗi trang
-    cout << "Nhap so luong muc tren moi trang: ";
-    while (!(cin >> itemsPerPage) || itemsPerPage <= 0) {
-        cout << "Vui long nhap mot so duong (> 0): ";
-        cin.clear(); // Xóa lỗi nhập
-        cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Bỏ qua các ký tự không hợp lệ trong buffer
-    }
-
-
-    // Đếm số lượng phần tử trong danh sách
     Node* temp = head;
+
     while (temp != nullptr) {
         totalItems++;
         temp = temp->pNext;
     }
 
-    // Tính số trang
+    // Nếu không có dữ liệu, thông báo và thoát sớm
+    if (totalItems == 0) {
+        cout << "Khong co ket qua de hien thi." << endl;
+        return;
+    }
+
+    // Tính tổng số trang
     int totalPages = (totalItems + itemsPerPage - 1) / itemsPerPage;
 
+    // Hiển thị tổng số dữ liệu và số trang
+    cout << "\nTong so ket qua: " << totalItems << endl;
+    cout << "Moi trang hien thi: " << itemsPerPage << " muc." << endl;
     cout << "Tong so trang: " << totalPages << endl;
 
+    int currentPage = 1; // Bắt đầu từ trang đầu tiên
     while (true) {
-        // Hiển thị các mục trên trang hiện tại
-        int startIndex = (page - 1) * itemsPerPage;
+        // Xác định phạm vi dữ liệu trên trang hiện tại
+        int startIndex = (currentPage - 1) * itemsPerPage;
         int endIndex = min(startIndex + itemsPerPage, totalItems);
-        int currentIndex = 0;
 
+        // Hiển thị các mục trên trang hiện tại
         temp = head;
+        int currentIndex = 0;
+        cout << "\n========== Trang " << currentPage << " ==========" << endl;
         while (temp != nullptr) {
             if (currentIndex >= startIndex && currentIndex < endIndex) {
                 cout << "ID: " << temp->data.id << endl;
@@ -148,23 +148,23 @@ void displayPaginated(Node* head, int itemsPerPage) {
 
         // Hiển thị menu điều hướng
         cout << "=====================" << endl;
-        cout << "Trang " << page << "/" << totalPages << endl;
+        cout << "Trang " << currentPage << "/" << totalPages << endl;
         cout << "Nhap 'n' de xem trang tiep theo, 'p' de quay lai trang truoc, 'g' de den trang cu the, 'q' de thoat." << endl;
         string choice;
         cin >> choice;
 
-        if (choice == "n" && page < totalPages) {
-            page++;
+        if (choice == "n" && currentPage < totalPages) {
+            currentPage++;
         }
-        else if (choice == "p" && page > 1) {
-            page--;
+        else if (choice == "p" && currentPage > 1) {
+            currentPage--;
         }
         else if (choice == "g") {
             int targetPage;
             cout << "Nhap so trang (1-" << totalPages << "): ";
             cin >> targetPage;
             if (targetPage >= 1 && targetPage <= totalPages) {
-                page = targetPage;
+                currentPage = targetPage;
             }
             else {
                 cout << "So trang khong hop le. Vui long thu lai." << endl;
@@ -178,10 +178,11 @@ void displayPaginated(Node* head, int itemsPerPage) {
         }
     }
 }
-// hàm tìm kiếm theo các tiêu chí
+//Hàm tìm kiếm theo tiêu chí
 Node* searchByCriteria(Node* head, const string& criteria, const string& value) {
     Node* resultHead = nullptr;
     Node* resultTail = nullptr;
+    int count = 0; // Biến đếm số lượng kết quả
 
     Node* temp = head;
     while (temp != nullptr) {
@@ -221,12 +222,17 @@ Node* searchByCriteria(Node* head, const string& criteria, const string& value) 
                 resultTail->pNext = newNode;
                 resultTail = newNode;
             }
+            count++; // Tăng biến đếm
         }
         temp = temp->pNext;
     }
 
+    // Hiển thị số lượng kết quả
+    cout << "Tim thay " << count << " ket qua voi tieu chi \"" << criteria << "\" gia tri \"" << value << "\"." << endl;
+
     return resultHead;
 }
+
 //hàm ghi dữ liệu vào file
 void writeListToCSV(Node* head, const string& filename) {
     ofstream file(filename, ios::out); // Mở file ở chế độ ghi đè
@@ -284,37 +290,127 @@ void deleteShowByID(Node*& head, int id, const string& filename) {
     writeListToCSV(head, "animerank.csv");
 }
 
+// Hàm kiểm tra ID trùng lặp trong danh sách
+bool isDuplicateID(Node* head, int id) {
+    Node* temp = head;
+    while (temp != nullptr) {
+        if (temp->data.id == id) {
+            return true; // Trùng ID
+        }
+        temp = temp->pNext;
+    }
+    return false; // Không trùng
+}
 
-//Hàm thêm chương trình mới
 void addNewShow(Node*& head) {
     ShowInfo newShow;
 
-    // Nhập thông tin chương trình mới
-    cout << "Nhap ID: ";
-    cin >> newShow.id;
+    // Nhập ID và kiểm tra trùng lặp
+    while (true) {
+        cout << "Nhap ID: ";
+        cin >> newShow.id;
+        if (cin.fail() || newShow.id <= 0) {
+            cout << "ID phai la so nguyen duong. Vui long thu lai!" << endl;
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        }
+        else if (isDuplicateID(head, newShow.id)) {
+            cout << "ID da ton tai trong danh sach. Vui long nhap ID khac!" << endl;
+        }
+        else {
+            break;
+        }
+    }
     cin.ignore();
-    cout << "Nhap ten phim: ";
-    getline(cin, newShow.title);
-    cout << "Nhap xep hang: ";
-    cin >> newShow.rank;
+
+    // Nhập tên phim
+    while (true) {
+        cout << "Nhap ten phim: ";
+        getline(cin, newShow.title);
+        if (newShow.title.empty()) {
+            cout << "Ten phim khong duoc de trong. Vui long thu lai!" << endl;
+        }
+        else {
+            break;
+        }
+    }
+
+    // Nhập xếp hạng
+    while (true) {
+        cout << "Nhap xep hang (1-100000): ";
+        cin >> newShow.rank;
+        if (cin.fail() || newShow.rank <= 0 || newShow.rank > 100000) {
+            cout << "Xep hang phai la so nguyen trong khoang 1-100000. Vui long thu lai!" << endl;
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        }
+        else {
+            break;
+        }
+    }
     cin.ignore();
-    cout << "Nhap loai: ";
-    getline(cin, newShow.type);
-    cout << "Nhap so tap: ";
-    cin >> newShow.episodes;
+
+    // Nhập loại
+    while (true) {
+        cout << "Nhap loai: ";
+        getline(cin, newShow.type);
+        if (newShow.type.empty()) {
+            cout << "Loai khong duoc de trong. Vui long thu lai!" << endl;
+        }
+        else {
+            break;
+        }
+    }
+
+    // Nhập số tập
+    while (true) {
+        cout << "Nhap so tap (>= 1): ";
+        cin >> newShow.episodes;
+        if (cin.fail() || newShow.episodes <= 0) {
+            cout << "So tap phai la so nguyen duong. Vui long thu lai!" << endl;
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        }
+        else {
+            break;
+        }
+    }
     cin.ignore();
-    cout << "Nhap thoi gian phat song: ";
-    getline(cin, newShow.aired);
-    cout << "Nhap diem so: ";
-    cin >> newShow.score;
+
+    // Nhập thời gian phát sóng
+    while (true) {
+        cout << "Nhap thoi gian phat song (VD: 2022-04-01): ";
+        getline(cin, newShow.aired);
+        if (newShow.aired.empty()) {
+            cout << "Thoi gian phat song khong duoc de trong. Vui long thu lai!" << endl;
+        }
+        else {
+            break;
+        }
+    }
+
+    // Nhập điểm số
+    while (true) {
+        cout << "Nhap diem so (0.0 - 10.0): ";
+        cin >> newShow.score;
+        if (cin.fail() || newShow.score < 0.0 || newShow.score > 10.0) {
+            cout << "Diem so phai la so thuc trong khoang 0.0 - 10.0. Vui long thu lai!" << endl;
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        }
+        else {
+            break;
+        }
+    }
 
     // Thêm chương trình mới vào cuối danh sách
     addShowToEnd(head, newShow);
-    cout << "Chuong trinh da duoc them!" << endl;
+    cout << "Chuong trinh da duoc them thanh cong!" << endl;
 
     // Ghi danh sách mới vào CSV mà không ghi đè dữ liệu cũ
     writeListToCSV(head, "animerank.csv");
 }
+
 
 // Hàm lọc danh sách theo nhiều tiêu chí
 Node* locTheoNhieuTieuChi(Node* head, const string& ten = "", const string& ngay = "", int soThuTu = -1,
@@ -591,63 +687,53 @@ int main() {
             }
             break;
 
-        case 3: 
-            {
-                // Đo thời gian thực thi khi tìm kiếm theo tiêu đề
-                string criteria, value;
-                bool backToMenu = false;
+        case 3: {
+            string criteria[] = { "title", "aired", "id", "type", "episodes" };
+            string value;
+            bool backToMenu = false;
 
-                do {
-                    cout << "Chon tieu chi tim kiem" << endl;
-                    cout << "1. Tieu de" << endl;
-                    cout << "2. Ngay len song" << endl;
-                    cout << "3. So thu tu (ID)" << endl;
-                    cout << "4. Loai" << endl;
-                    cout << "5. So tap" << endl;
-                    cout << "0. Quay ve menu chinh" << endl;
-                    cout << "Nhap lua chon (0-5): ";
-                    int subChoice;
-                    cin >> subChoice;
+            do {
+                cout << "\nChon tieu chi tim kiem:" << endl;
+                cout << "1. Tieu de" << endl;
+                cout << "2. Ngay len song" << endl;
+                cout << "3. So thu tu (ID)" << endl;
+                cout << "4. Loai" << endl;
+                cout << "5. So tap" << endl;
+                cout << "0. Quay ve menu chinh" << endl;
+                cout << "Nhap lua chon (0-5): ";
+                int subChoice;
+                cin >> subChoice;
 
-                    if (subChoice == 0) {
-                        backToMenu = true;
-                        break;
-                    }
-
-                    switch (subChoice) {
-                    case 1: criteria = "title"; break;
-                    case 2: criteria = "aired"; break;
-                    case 3: criteria = "id"; break;
-                    case 4: criteria = "type"; break;
-                    case 5: criteria = "episodes"; break;
-                 
-                    default:
-                        cout << "Lua chon khong hop le, vui long thu lai!" << endl;
-                        continue;
-                    }
-
-                    cout << "Nhap gia tri can tim: ";
-                    cin.ignore();
-                    getline(cin, value);
-
-                    auto start = high_resolution_clock::now();
-                    Node* searchResult = searchByCriteria(showList, criteria, value);
-                    auto end = high_resolution_clock::now();
-                    auto duration = duration_cast<microseconds>(end - start);
-
-                    if (searchResult == nullptr) {
-                        cout << "Khong tim thay ket qua!" << endl;
-                    } else {
-                        cout << "Ket qua tim kiem:" << endl;
-                        displayPaginated(searchResult, itemsPerPage);
-                        freeList(searchResult);
-                    }
-                    cout << "\nThoi gian tim kiem: " << duration.count() << " microseconds\n";
+                if (subChoice == 0) {
+                    backToMenu = true;
                     break;
-                } while (!backToMenu);
+                }
+                else if (subChoice < 1 || subChoice > 5) {
+                    cout << "Lua chon khong hop le, vui long thu lai!" << endl;
+                    continue;
+                }
 
-            }
-            break;
+                cout << "Nhap gia tri can tim: ";
+                cin.ignore();
+                getline(cin, value);
+
+                auto start = high_resolution_clock::now();
+                Node* searchResult = searchByCriteria(showList, criteria[subChoice - 1], value);
+                auto end = high_resolution_clock::now();
+                auto duration = duration_cast<microseconds>(end - start);
+
+                if (searchResult == nullptr) {
+                    cout << "Khong tim thay ket qua!" << endl;
+                }
+                else {
+                    displayPaginated(searchResult, itemsPerPage);
+                    freeList(searchResult);
+                }
+                cout << "Thoi gian tim kiem: " << duration.count() << " microseconds\n";
+            } while (!backToMenu);
+        }
+              break;
+
 
         case 4: 
             {
